@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1c2230">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="안전장구">
+<title>안전장구 관리</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#1c2230;--sub:#6b7280;--line:#e4e6eb;--acc:#f26b1d;--accb:#fff1e7;
+--ok:#15803d;--okb:#e7f6ec;--warn:#b45309;--warnb:#fff5dc;--bad:#c62828;--badb:#fdeaea;--blue:#1d4ed8;--blueb:#e6edff;--gray:#4b5563;--grayb:#eef0f3}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Pretendard','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px}
+button:hover{border-color:#c9ccd3}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+button.dark{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+button.danger{color:var(--bad)}
+button.ghost{background:transparent;border-color:transparent;color:var(--sub)}
+button.sm{padding:4px 10px;font-size:13px}
+button.lg{padding:12px 18px;font-size:16px}
+button:disabled{opacity:.4;cursor:not-allowed}
+input,select,textarea{font:inherit;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;width:100%;color:var(--ink)}
+input[type=checkbox],input[type=radio]{width:auto}
+input.num{width:80px;text-align:right}
+textarea{min-height:70px;resize:vertical}
+label.f{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px;font-weight:600}
+.top{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:var(--ink);color:#fff;position:sticky;top:0;z-index:5}
+.top .brand{font-weight:800;letter-spacing:-.3px;white-space:nowrap}
+.top .who{margin-left:auto;font-size:13.5px;opacity:.92;text-align:right;line-height:1.25}
+.top .who small{display:block;opacity:.7;font-size:11.5px}
+.top button{background:transparent;color:#fff;border-color:#ffffff40}
+.live{font-size:11px;opacity:.75;white-space:nowrap}.live:before{content:'●';color:#4ade80;margin-right:3px}
+.offline{background:var(--warnb);color:var(--warn);text-align:center;font-size:13px;padding:6px}
+.tabs{display:flex;gap:2px;padding:0 12px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:52px;z-index:4}
+.tabs button{border:none;border-bottom:3px solid transparent;border-radius:0;padding:13px 12px;white-space:nowrap;color:var(--sub);background:none}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:700}
+.n{display:inline-block;min-width:18px;padding:0 6px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;margin-left:4px;text-align:center;line-height:18px;font-weight:700}
+main{max-width:1200px;margin:0 auto;padding:20px 16px 90px}
+main.narrow{max-width:760px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+.card>h3{margin:0 0 12px;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card>h3 .r{margin-left:auto;display:flex;gap:6px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.kpi{cursor:pointer;margin:0;transition:.15s}
+.kpi:hover{border-color:var(--acc)}
+.kpi .v{font-size:32px;font-weight:800;letter-spacing:-1px}
+.kpi .l{color:var(--sub);font-size:13px;font-weight:600}
+.kpi .h{font-size:12px;color:var(--sub);margin-top:4px}
+.kpi.alert .v{color:var(--acc)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{color:var(--sub);font-weight:600;font-size:12.5px;background:#fafbfc;white-space:nowrap}
+td.r,th.r{text-align:right}
+tr.grp td{background:#fafbfc;font-weight:700;font-size:13px}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.t-wait{background:var(--warnb);color:var(--warn)}.t-ok{background:var(--okb);color:var(--ok)}.t-bad{background:var(--badb);color:var(--bad)}
+.t-blue{background:var(--blueb);color:var(--blue)}.t-gray{background:var(--grayb);color:var(--gray)}.t-acc{background:var(--accb);color:var(--acc)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+.muted{color:var(--sub);font-size:13px}
+.empty{color:var(--sub);text-align:center;padding:22px;font-size:14px}
+.modal{position:fixed;inset:0;background:#0b0f1a88;display:flex;align-items:center;justify-content:center;z-index:20;padding:12px}
+.hidden{display:none!important}
+.sheet{background:#fff;border-radius:14px;max-width:680px;width:100%;max-height:92vh;overflow:auto;padding:22px}
+.sheet h2{margin:0 0 4px;font-size:19px}
+.sheet .foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;position:sticky;bottom:-22px;background:#fff;padding:12px 0 4px;border-top:1px solid var(--line);flex-wrap:wrap}
+.sig{border:2px dashed #cfd3da;border-radius:10px;width:100%;height:170px;touch-action:none;background:#fcfcfd;display:block}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13.5px;cursor:pointer;user-select:none;background:#fff}
+.chip input{display:none}
+.chip:has(input:checked){background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.unit:has(input:checked){background:var(--acc);border-color:var(--acc)}
+details.cat{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fff}
+details.cat summary{padding:11px 14px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:8px}
+details.cat .in{padding:0 14px 14px}
+.notice{background:var(--accb);border:1px solid #fbd2b6;border-radius:12px;padding:16px;margin-bottom:16px}
+.notice h3{margin:0 0 10px;color:#9a3d06}
+.pend{background:#fff;border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.guide{background:#f7f8fa;border-left:4px solid var(--acc);padding:10px 12px;border-radius:6px;font-size:14px;margin:6px 0;white-space:pre-wrap}
+.hold{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.hold:last-child{border-bottom:none}
+.hold input{transform:scale(1.3)}
+.hold .nm{font-weight:600}
+.hold .q{margin-left:auto;font-weight:800;font-size:16px;white-space:nowrap}
+.cathd{font-size:13px;font-weight:800;color:var(--sub);margin:14px 0 2px;display:flex;gap:6px;align-items:center}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;justify-content:center;z-index:6;box-shadow:0 -4px 16px #0002}
+.login{max-width:560px;margin:50px auto;padding:0 16px}
+.login h1{font-size:28px;margin:0 0 6px}
+.gbtn{display:inline-flex;align-items:center;gap:10px;padding:12px 22px;font-size:16px;font-weight:600;border-radius:10px;border:1px solid #dadce0}
+.acct{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-top:8px}
+.acct small{display:block;color:var(--sub)}
+.center{text-align:center;padding:36px 22px}
+.center .big{font-size:48px}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;z-index:30;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+@media (max-width:640px){.top .brand span{display:none}main{padding:14px 12px 90px}.card{padding:14px}.g2{grid-template-columns:1fr}.tabs{top:48px}.kpi .v{font-size:26px}}
+</style>
+</head>
+<body>
+<div id="app"><div class="empty" style="margin-top:30vh">불러오는 중…</div></div>
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()"><div class="sheet" id="sheet"></div></div>
+<div id="toast"></div>
+<script>
+/* =========================================================
+   설정 · 유틸
+   ========================================================= */
+const CFG = window.APP_CONFIG || {};
+const MODE = CFG.firebase && CFG.firebase.apiKey ? 'firebase' : 'local';
+const SUPER = String(MODE === 'local' ? 'super@demo.local' : (CFG.superAdminEmail || '')).toLowerCase();
+const LS = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }, del(k) { try { localStorage.removeItem(k); } catch (e) { } } };
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = (n, l = 2) => String(n).padStart(l, '0');
+const now = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const day = s => (s || '').slice(0, 10);
+const won = n => (Math.round(+n || 0)).toLocaleString('ko-KR') + '원';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clone = o => o == null ? o : JSON.parse(JSON.stringify(o));
+
+const COLS = ['cats', 'items', 'units', 'comps', 'iss', 'reqs', 'users'];
+const emptyS = () => Object.fromEntries(COLS.map(c => [c, []]));
+let S = emptyS();
+const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0) || String(a.name).localeCompare(String(b.name));
+const cats = () => [...S.cats].sort(byOrder);
+const cat = id => S.cats.find(c => c.id === id);
+const itemsOf = cid => S.items.filter(i => i.catId === cid).sort(byOrder);
+const item = id => S.items.find(i => i.id === id);
+const comp = id => S.comps.find(c => c.id === id);
+const comps = () => [...S.comps].sort((a, b) => a.name.localeCompare(b.name));
+const unit = id => S.units.find(u => u.id === id);
+const user = id => S.users.find(u => u.id === id);
+const out = l => l.qty - l.returned - l.lost;
+const byDate = (a, b) => String(b.date || b.createdAt || '').localeCompare(String(a.date || a.createdAt || ''));
+const NK = { '지급': 'G', '신고': 'R' };
+function numbering(cnt, prefix, n = 1) {
+  const y = new Date().getFullYear(), k = NK[prefix] + y, s = +(cnt?.[k] || 0);
+  return { nos: Array.from({ length: n }, (_, i) => `${prefix}-${y}-${pad(s + i + 1, 3)}`), patch: { [k]: s + n } };
+}
+
+/* =========================================================
+   데이터 계층 — Firebase(실서비스) / Local(체험 모드) 동일 인터페이스
+   ========================================================= */
+const strip = v => { const o = { ...v }; delete o.id; return o; };
+const FB = {
+  async init() {
+    const V = '10.12.2', base = `https://www.gstatic.com/firebasejs/${V}/`;
+    for (const f of ['firebase-app-compat.js', 'firebase-auth-compat.js', 'firebase-firestore-compat.js']) await loadScript(base + f);
+    firebase.initializeApp(CFG.firebase);
+    this.auth = firebase.auth(); this.db = firebase.firestore();
+    this.db.settings({ ignoreUndefinedProperties: true, merge: true });
+    try { await this.db.enablePersistence({ synchronizeTabs: true }); } catch (e) { }
+    this.auth.getRedirectResult().catch(e => toast('로그인 오류: ' + e.message));
+  },
+  onAuth(cb) { this.auth.onAuthStateChanged(u => cb(u ? { uid: u.uid, email: u.email, name: u.displayName, photo: u.photoURL } : null)); },
+  async signIn() {
+    const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
+    try { await this.auth.signInWithPopup(p); }
+    catch (e) {
+      if (['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/cancelled-popup-request'].includes(e.code)) await this.auth.signInWithRedirect(p);
+      else if (e.code !== 'auth/popup-closed-by-user') throw e;
+    }
+  },
+  signOut() { return this.auth.signOut(); },
+  ref(c, i) { return this.db.collection(c).doc(i); },
+  watch(col, f, cb, err) { let q = this.db.collection(col); if (f) q = q.where(f[0], '==', f[1]); return q.onSnapshot(s => cb(s.docs.map(d => ({ ...d.data(), id: d.id }))), err); },
+  watchDoc(col, id, cb, err) { return this.ref(col, id).onSnapshot(d => cb(d.exists ? { ...d.data(), id: d.id } : null), err); },
+  inc(n) { return firebase.firestore.FieldValue.increment(n); },
+  newId() { return this.db.collection('_').doc().id; },
+  tx(fn) {
+    return this.db.runTransaction(async T => fn({
+      get: async (c, i) => { const d = await T.get(this.ref(c, i)); return d.exists ? { ...d.data(), id: d.id } : null; },
+      set: (c, i, v) => T.set(this.ref(c, i), strip(v)), update: (c, i, v) => T.update(this.ref(c, i), strip(v)), delete: (c, i) => T.delete(this.ref(c, i)),
+    }));
+  },
+  async write(ops) {
+    for (let k = 0; k < ops.length; k += 450) {
+      const b = this.db.batch();
+      ops.slice(k, k + 450).forEach(([o, c, i, v]) => o === 'set' ? b.set(this.ref(c, i), strip(v)) : o === 'update' ? b.update(this.ref(c, i), strip(v)) : b.delete(this.ref(c, i)));
+      await b.commit();
+    }
+  },
+};
+const LOCAL = {
+  KEY: 'safety-gear-demo-v2', subs: [],
+  init() {
+    this.load();
+    addEventListener('storage', e => { if (e.key === this.KEY) { this.load(); this.emit(); } if (e.key === this.KEY + '-auth') this.authCb?.(this.curAuth()); });
+  },
+  load() { try { this.data = JSON.parse(LS.get(this.KEY)); } catch (e) { } if (!this.data) { this.data = demoSeed(); LS.set(this.KEY, JSON.stringify(this.data)); } },
+  persist() { LS.set(this.KEY, JSON.stringify(this.data)); this.emit(); },
+  emit() { this.subs.forEach(s => s()); },
+  onAuth(cb) { this.authCb = cb; cb(this.curAuth()); },
+  curAuth() { try { return JSON.parse(LS.get(this.KEY + '-auth')); } catch (e) { return null; } },
+  async signIn(a) { LS.set(this.KEY + '-auth', JSON.stringify(a)); this.authCb(a); },
+  async signOut() { LS.del(this.KEY + '-auth'); this.authCb(null); },
+  watch(col, f, cb) { const s = () => cb(Object.values(this.data[col] || {}).filter(d => !f || d[f[0]] === f[1]).map(clone)); this.subs.push(s); setTimeout(s); return () => this.subs = this.subs.filter(x => x !== s); },
+  watchDoc(col, id, cb) { const s = () => cb(clone(this.data[col]?.[id] || null)); this.subs.push(s); setTimeout(s); return () => this.subs = this.subs.filter(x => x !== s); },
+  inc(n) { return { __inc: n }; },
+  newId() { return uid(''); },
+  apply(o, c, i, v) {
+    const t = this.data[c] = this.data[c] || {};
+    if (o === 'delete') { delete t[i]; return; }
+    if (o === 'update' && !t[i]) throw new Error('문서를 찾을 수 없습니다');
+    const n = o === 'set' ? {} : { ...t[i] };
+    for (const [k, x] of Object.entries(v)) { if (k === 'id' || x === undefined) continue; n[k] = x && x.__inc !== undefined ? (+n[k] || 0) + x.__inc : clone(x); }
+    n.id = i; t[i] = n;
+  },
+  async tx(fn) {
+    const w = [], r = await fn({ get: async (c, i) => clone(this.data[c]?.[i] || null), set: (c, i, v) => w.push(['set', c, i, v]), update: (c, i, v) => w.push(['update', c, i, v]), delete: (c, i) => w.push(['delete', c, i]) });
+    w.forEach(x => this.apply(...x)); this.persist(); return r;
+  },
+  async write(ops) { ops.forEach(x => this.apply(...x)); this.persist(); },
+};
+const DB = MODE === 'firebase' ? FB : LOCAL;
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('불러오기 실패: ' + src)); document.head.appendChild(s); }); }
+
+/* ---- 기본 장비 구성 (최초 1회 불러오기 / 체험 데이터) ---- */
+function defaultCats() {
+  return [
+    [{ id: 'bc', order: 1, name: '바디캠', icon: '📹', tracking: 'unit', isSet: false, issueTypes: ['고장', '파손', '분실', '기타'], deductTypes: ['분실'],
+       guide: '렌즈를 가리지 않도록 착용하고, 매일 작업 종료 후 충전해 주세요.\n고장·파손·분실 시 즉시 앱에서 신고해 주세요. 분실은 단가 기준으로 공제됩니다.' },
+     [['bc1', '경량형', 180000, 0], ['bc2', '명찰형', 150000, 0]]],
+    [{ id: 'ai', order: 2, name: 'AI 카메라', icon: '🎥', tracking: 'qty', isSet: true, issueTypes: ['고장', '파손', '분실', '기타'], deductTypes: ['분실'],
+       guide: '구성품을 지급 시 함께 확인해 주세요. 반납 시 모든 구성품이 있어야 합니다.' },
+     [['ai1', '카메라 본체', 1200000, 10], ['ai2', '배터리', 90000, 20], ['ai3', '거치대', 60000, 12], ['ai4', '충전기', 30000, 12], ['ai5', '메모리카드', 25000, 12]]],
+    [{ id: 'lt', order: 3, name: '경광등·호출벨', icon: '🚨', tracking: 'qty', isSet: false, issueTypes: ['고장', '분실'], deductTypes: ['분실'], guide: '작업 종료 시 반납해 주세요.' },
+     [['lt1', '경광등', 25000, 40], ['lt2', '호출벨', 15000, 40]]],
+    [{ id: 'hs', order: 4, name: '혹서기 물품', icon: '🧊', tracking: 'qty', isSet: false, issueTypes: ['분실', '기타'], deductTypes: [], guide: '혹서기 종료 후 반납 대상 물품입니다.' },
+     [['hs1', '아이스조끼', 35000, 50], ['hs2', '쿨토시', 3000, 200], ['hs3', '냉각타월', 5000, 100]]],
+  ].map(([c, its]) => [c, its.map(([id, name, price, stock], k) => ({ id, catId: c.id, order: k + 1, name, price, stock }))]);
+}
+function demoSeed() {
+  const d = Object.fromEntries([...COLS, 'meta'].map(c => [c, {}])), put = (c, o) => d[c][o.id] = o;
+  defaultCats().forEach(([c, its]) => { put('cats', c); its.forEach(i => put('items', i)); });
+  [['c1', '(주)한빛건설', '김현수', '010-1234-5678'], ['c2', '대성전기', '이도윤', '010-2345-6789'], ['c3', '미래안전산업', '박서준', '010-3456-7890']]
+    .forEach(([id, name, manager, phone]) => put('comps', { id, name, manager, phone }));
+  for (let i = 1; i <= 8; i++) put('units', { id: 'u' + i, catId: 'bc', itemId: i % 2 ? 'bc1' : 'bc2', serial: 'BC-' + pad(i, 4), status: '재고', companyId: null });
+  const t = now();
+  [['demo-super', '최종관리', 'super@demo.local', 'super', 'approved', 'admin', null],
+   ['demo-admin', '안전팀 관리자', 'admin@demo.local', 'admin', 'approved', 'admin', null],
+   ['demo-p1', '김현수', 'kim@hanbit.demo', 'partner', 'approved', 'partner', 'c1'],
+   ['demo-p2', '이도윤', 'lee@daesung.demo', 'partner', 'approved', 'partner', 'c2'],
+   ['demo-new1', '정하늘', 'jung@mirae.demo', 'none', 'pending', 'partner', 'c3'],
+   ['demo-new2', '오지훈', 'oh@newco.demo', 'none', 'pending', 'partner', null, '(주)새솔건설'],
+   ['demo-new3', '한지민', 'han@office.demo', 'none', 'pending', 'admin', null]]
+    .forEach(([id, name, email, role, status, requestedRole, companyId, requestedCompany]) => put('users',
+      { id, name, email, role, status, requestedRole, companyId, requestedCompany: requestedCompany || '', phone: '', createdAt: t, approvedBy: status === 'approved' ? '시스템' : '', approvedAt: status === 'approved' ? t : '' }));
+  const mk = (id, no, companyId, status, notes, lines) => {
+    put('iss', { id, no, companyId, date: t, notes, status, returns: [], createdBy: '안전팀 관리자', signer: status === 'signed' ? '이도윤' : '', signedAt: status === 'signed' ? t : '', sig: '',
+      lines: lines.map(([itemId, qty, unitId], k) => { const it = d.items[itemId], u = unitId && d.units[unitId];
+        if (u) Object.assign(u, { status: '지급', companyId }); else it.stock -= qty;
+        return { lid: id + 'l' + k, catId: it.catId, itemId, itemName: it.name, unitId: unitId || null, serial: u ? u.serial : null, qty, returned: 0, lost: 0 }; }) });
+  };
+  const y = new Date().getFullYear();
+  mk('g1', `지급-${y}-001`, 'c1', 'pending', '3공구 야간작업조 지급분', [['bc1', 1, 'u1'], ['bc2', 1, 'u2'], ['lt1', 2], ['lt2', 2], ['hs1', 5]]);
+  mk('g2', `지급-${y}-002`, 'c2', 'signed', '', [['ai1', 1], ['ai2', 1], ['ai3', 1], ['ai4', 1], ['ai5', 1], ['bc1', 1, 'u3']]);
+  put('reqs', { id: 'r1', no: `신고-${y}-001`, companyId: 'c2', issId: 'g2', lid: 'g2l1', catId: 'ai', itemId: 'ai2', itemName: '배터리', unitId: null, serial: null,
+    type: '분실', qty: 1, desc: '현장 이동 중 분실 추정', date: t, status: '접수', by: '이도윤' });
+  d.meta.counters = { id: 'counters', ['G' + y]: 2, ['R' + y]: 1 };
+  return d;
+}
+
+/* =========================================================
+   인증 · 권한 · 실시간 구독
+   ========================================================= */
+let AUTH = null, ME = undefined, meUnsub = null, unsubs = [], dataKey = '';
+const isSuper = () => ME?.status === 'approved' && (ME.role === 'super' || String(AUTH?.email).toLowerCase() === SUPER);
+const isAdmin = () => ME?.status === 'approved' && (ME.role === 'admin' || isSuper());
+const isPartner = () => ME?.status === 'approved' && ME.role === 'partner';
+const ROLE = { super: '최종 관리자', admin: '관리자', partner: '협력사', none: '미승인' };
+const onErr = e => { console.error(e); toast(e.code === 'permission-denied' ? '권한이 없습니다. 관리자에게 문의하세요.' : '오류: ' + (e.message || e)); };
+
+async function boot() {
+  try { await DB.init(); } catch (e) { $('#app').innerHTML = `<div class="login"><div class="card center"><div class="big">⚠️</div><h2>연결할 수 없습니다</h2><p class="muted">${esc(e.message)}<br>인터넷 연결을 확인하고 새로고침해 주세요.</p></div></div>`; return; }
+  DB.onAuth(a => {
+    AUTH = a; meUnsub?.(); meUnsub = null; stopData(); ME = a ? undefined : null; dataKey = '';
+    render();
+    if (!a) return;
+    meUnsub = DB.watchDoc('users', a.uid, async d => {
+      if (!d && String(a.email).toLowerCase() === SUPER) {   // 최종 관리자 최초 로그인 → 자동 등록
+        try { await DB.write([['set', 'users', a.uid, { email: a.email, name: a.name || '최종 관리자', photo: a.photo || '', phone: '', role: 'super', status: 'approved', requestedRole: 'admin', companyId: null, createdAt: now(), approvedBy: '시스템', approvedAt: now() }]]); } catch (e) { onErr(e); }
+        return;
+      }
+      ME = d;
+      const k = d ? `${d.status}|${d.role}|${d.companyId}` : 'none';
+      if (k !== dataKey) { dataKey = k; startData(); }
+      schedule();
+    }, onErr);
+  });
+}
+function startData() {
+  stopData();
+  const L = (c, f) => unsubs.push(DB.watch(c, f, docs => { S[c] = docs; schedule(); }, onErr));
+  if (isAdmin()) COLS.forEach(c => L(c));
+  else if (isPartner()) { ['cats', 'items', 'comps'].forEach(c => L(c)); L('iss', ['companyId', ME.companyId]); L('reqs', ['companyId', ME.companyId]); }
+  else L('comps');    // 가입 신청 화면에서 협력사 목록 선택용
+}
+function stopData() { unsubs.forEach(u => u()); unsubs = []; S = emptyS(); }
+async function login() { try { await DB.signIn(); } catch (e) { onErr(e); } }
+async function demoLogin(id) { const u = LOCAL.data.users[id]; DB.signIn({ uid: id, email: u.email, name: u.name }); }
+async function demoNew() {
+  const email = $('#dm_email').value.trim(), name = $('#dm_name').value.trim();
+  if (!/.+@.+/.test(email)) return toast('이메일 형식으로 입력하세요');
+  DB.signIn({ uid: 'demo-' + email.replace(/[^a-z0-9]/gi, '_'), email, name });
+}
+function logout() { if (confirm('로그아웃할까요?')) { sel = new Set(); DB.signOut(); } }
+
+/* =========================================================
+   공통 UI · 렌더링
+   ========================================================= */
+let view = { tab: 'dash', reqF: '접수' };
+try { Object.assign(view, JSON.parse(LS.get('safety-gear-view') || '{}')); } catch (e) { }
+let sel = new Set(), rq = 0, deferred = false;
+function setView(p) { Object.assign(view, p); LS.set('safety-gear-view', JSON.stringify({ tab: view.tab })); sel = new Set(); render(); scrollTo(0, 0); }
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2600); }
+function openModal(html) { $('#sheet').innerHTML = html; $('#modal').classList.remove('hidden'); }
+function closeModal() { $('#modal').classList.add('hidden'); }
+const tag = (t, cls) => `<span class="tag ${cls}">${esc(t)}</span>`;
+const reqTag = s => tag(s, { '접수': 't-wait', '확인': 't-blue', '반려': 't-gray' }[s] || 't-gray');
+const typeTag = t => tag(t, t === '분실' ? 't-bad' : t === '기타' ? 't-gray' : 't-acc');
+
+// 실시간 변경이 들어와도 입력 중인 내용이 지워지지 않도록 처리
+function schedule() {
+  if (rq) return;
+  rq = setTimeout(() => {
+    rq = 0;
+    const a = document.activeElement;
+    if (a && a.closest('#app') && a.matches('input:not([data-keep]):not([type=checkbox]):not([type=radio]),textarea:not([data-keep])')) { deferred = true; return; }
+    render();
+  }, 30);
+}
+document.addEventListener('focusout', () => { if (deferred) { deferred = false; setTimeout(schedule); } });
+addEventListener('online', schedule); addEventListener('offline', schedule);
+
+function render() {
+  const keep = {}; $$('#app [data-keep][id]').forEach(el => keep[el.id] = el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value);
+  const fid = document.activeElement?.id, sy = scrollY;
+  $('#app').innerHTML = page();
+  for (const [k, v] of Object.entries(keep)) { const el = document.getElementById(k); if (!el) continue; if (el.type === 'checkbox' || el.type === 'radio') el.checked = v; else el.value = v; }
+  if (fid) document.getElementById(fid)?.focus({ preventScroll: true });
+  scrollTo(0, sy);
+  if ($('#su_role_p')) suToggle();
+  updBar();
+}
+function page() {
+  if (!AUTH) return loginView();
+  if (ME === undefined) return topBar() + '<div class="empty" style="margin-top:20vh">불러오는 중…</div>';
+  if (ME === null || view.reapply) return topBar() + signupView();
+  if (ME.status === 'pending') return topBar() + waitView();
+  if (ME.status === 'rejected') return topBar() + statusView('🚫', '가입 신청이 반려되었습니다', ME.rejectReason ? '사유: ' + ME.rejectReason : '', `<button class="pri" onclick="view.reapply=true;render()">다시 신청하기</button>`);
+  if (ME.status !== 'approved') return topBar() + statusView('⛔', '사용이 중지된 계정입니다', '관리자에게 문의해 주세요.');
+  if (isAdmin()) return adminView();
+  if (isPartner()) return comp(ME.companyId) || !S.comps.length ? partnerView() : topBar() + statusView('🏢', '소속 협력사 정보가 없습니다', '관리자에게 소속 지정을 요청해 주세요.');
+  return topBar() + statusView('⏳', '권한 확인 중', '');
+}
+function topBar() {
+  const who = !ME ? esc(AUTH?.email || '') : `${esc(ME.name)}<small>${isPartner() ? esc(comp(ME.companyId)?.name || '협력사') : ROLE[isSuper() ? 'super' : ME.role] || ''}</small>`;
+  return `<div class="top"><div class="brand">🦺 <span>안전장구 관리</span></div>
+    ${MODE === 'local' ? tag('체험 모드', 't-acc') : navigator.onLine ? '<span class="live">실시간</span>' : ''}
+    <div class="who">${who}</div>${installBtn()}${AUTH ? `<button class="sm" onclick="logout()">로그아웃</button>` : ''}</div>
+    ${navigator.onLine ? '' : '<div class="offline">오프라인 상태입니다. 다시 연결되면 자동으로 동기화됩니다.</div>'}`;
+}
+const statusView = (ic, h, p, btn = '') => `<main class="narrow"><div class="card center"><div class="big">${ic}</div><h2>${esc(h)}</h2><p class="muted">${esc(p)}</p>${btn}</div></main>`;
+
+/* ---- 앱 설치 (PWA) ---- */
+let installEvt = null;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; schedule(); });
+addEventListener('appinstalled', () => { installEvt = null; toast('앱이 설치되었습니다'); schedule(); });
+const installBtn = () => standalone() ? '' : `<button class="sm" onclick="installApp()">📲 앱 설치</button>`;
+function installApp() {
+  if (installEvt) { installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; schedule(); }); return; }
+  openModal(`<h2>📲 앱으로 설치하기</h2><p class="muted">설치하면 홈 화면 아이콘으로 바로 열리고, 앱처럼 전체 화면으로 실행됩니다.</p>
+    <label class="f">안드로이드 (Chrome · 삼성 인터넷)</label><div class="guide">브라우저 메뉴 ⋮ › <b>앱 설치</b> 또는 <b>홈 화면에 추가</b></div>
+    <label class="f">아이폰 · 아이패드 (Safari)</label><div class="guide">하단 공유 버튼 ⬆️ › <b>홈 화면에 추가</b></div>
+    <label class="f">PC (Chrome · Edge)</label><div class="guide">주소창 오른쪽 끝의 설치 아이콘 ⊕ 또는 메뉴 › <b>앱 설치</b></div>
+    <div class="foot"><button onclick="closeModal()">닫기</button></div>`);
+}
+
+/* =========================================================
+   로그인 · 가입 신청 · 승인 대기
+   ========================================================= */
+const GLOGO = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>`;
+function loginView() {
+  const intro = `<h1>🦺 안전장구 관리</h1><p class="muted" style="margin:0 0 22px">바디캠 · AI 카메라 · 경광등/호출벨 · 혹서기 물품의 지급, 서명, 신고를 실시간으로 관리합니다.</p>`;
+  if (MODE === 'firebase') return `<div class="login">${intro}<div class="card center">
+      <button class="gbtn" onclick="login()">${GLOGO} Google 계정으로 로그인</button>
+      <p class="muted" style="margin-top:16px">승인된 사용자만 이용할 수 있습니다.<br>처음이라면 로그인 후 가입 신청을 해 주세요.</p></div>
+      <div class="row" style="justify-content:center">${installBtn()}</div></div>`;
+  const us = Object.values(LOCAL.data.users || {});
+  return `<div class="login">${intro}<div class="card"><h3>🧪 체험 모드</h3>
+    <p class="muted" style="margin-top:-6px">Firebase 연결 전이라 <b>이 브라우저 안에서만</b> 동작합니다. 실제 서비스에서는 이 자리에 <b>Google 로그인</b> 버튼이 나타납니다. 아래 계정을 눌러 역할별 화면을 체험해 보세요.</p>
+    ${us.map(u => `<button class="acct" onclick="demoLogin('${u.id}')"><span style="font-size:22px">${u.role === 'super' ? '👑' : u.role === 'admin' ? '🛠️' : u.role === 'partner' ? '👷' : '⏳'}</span>
+      <span><b>${esc(u.name)}</b> ${tag(u.status === 'approved' ? ROLE[u.role] : u.status === 'pending' ? '승인 대기' : u.status, u.status === 'approved' ? 't-gray' : 't-wait')}<small>${esc(u.email)}</small></span></button>`).join('')}
+    <label class="f" style="margin-top:18px">새 Google 계정으로 가입 체험</label>
+    <div class="row"><input id="dm_name" placeholder="이름" style="flex:1;min-width:100px"><input id="dm_email" placeholder="이메일" style="flex:2;min-width:160px"><button class="dark" onclick="demoNew()">로그인</button></div>
+    <div class="row" style="margin-top:14px"><span class="sp"></span><button class="sm ghost" onclick="if(confirm('체험 데이터를 처음 상태로 되돌릴까요?')){LOCAL.data=demoSeed();LOCAL.persist();render()}">체험 데이터 초기화</button></div></div>
+    <div class="row" style="justify-content:center">${installBtn()}</div></div>`;
+}
+function signupView() {
+  const r = ME?.status === 'rejected' ? ME : {};
+  return `<main class="narrow"><div class="card"><h3>📝 가입 신청</h3>
+    <p class="muted" style="margin-top:-6px"><b>${esc(AUTH.email)}</b> 계정으로 로그인했습니다. 아래 내용을 제출하면 승인 후 이용할 수 있습니다.</p>
+    <label class="f">이름</label><input id="su_name" data-keep value="${esc(r.name || AUTH.name || '')}">
+    <label class="f">연락처</label><input id="su_phone" data-keep placeholder="010-0000-0000" value="${esc(r.phone || '')}">
+    <label class="f">가입 유형</label><div class="chips">
+      <label class="chip"><input type="radio" name="su_role" id="su_role_p" data-keep value="partner" ${r.requestedRole !== 'admin' ? 'checked' : ''} onchange="suToggle()">👷 협력사 사용자</label>
+      <label class="chip"><input type="radio" name="su_role" id="su_role_a" data-keep value="admin" ${r.requestedRole === 'admin' ? 'checked' : ''} onchange="suToggle()">🛠️ 관리자</label></div>
+    <div id="su_cbox"><label class="f">소속 협력사</label>
+      <select id="su_comp" data-keep onchange="suToggle()"><option value="">선택하세요</option>${comps().map(c => `<option value="${c.id}" ${r.companyId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}<option value="__new">목록에 없음 (직접 입력)</option></select>
+      <input id="su_newc" data-keep placeholder="협력사명 입력" style="margin-top:6px" value="${esc(r.requestedCompany || '')}"></div>
+    <p class="muted" id="su_hint"></p>
+    <button class="pri lg" style="width:100%" onclick="signup()">가입 신청</button>
+    ${view.reapply ? `<button class="ghost" style="width:100%;margin-top:6px" onclick="view.reapply=false;render()">취소</button>` : ''}</div></main>`;
+}
+function suToggle() {
+  const p = $('#su_role_p').checked;
+  $('#su_cbox').classList.toggle('hidden', !p);
+  $('#su_newc').classList.toggle('hidden', $('#su_comp').value !== '__new');
+  $('#su_hint').textContent = p ? '협력사 사용자는 관리자 누구나 승인할 수 있습니다.' : '관리자 가입은 최종 관리자만 승인할 수 있습니다.';
+}
+async function signup() {
+  const name = $('#su_name').value.trim(), role = $('#su_role_p').checked ? 'partner' : 'admin';
+  if (!name) return toast('이름을 입력하세요');
+  let companyId = null, requestedCompany = '';
+  if (role === 'partner') {
+    const v = $('#su_comp').value;
+    if (!v) return toast('소속 협력사를 선택하세요');
+    if (v === '__new') { requestedCompany = $('#su_newc').value.trim(); if (!requestedCompany) return toast('협력사명을 입력하세요'); } else companyId = v;
+  }
+  const p = { name, phone: $('#su_phone').value.trim(), requestedRole: role, companyId, requestedCompany, status: 'pending' };
+  try {
+    if (ME?.status === 'rejected') await DB.write([['update', 'users', AUTH.uid, { ...p, updatedAt: now() }]]);
+    else await DB.write([['set', 'users', AUTH.uid, { ...p, email: AUTH.email, photo: AUTH.photo || '', role: 'none', createdAt: now() }]]);
+    view.reapply = false; toast('가입 신청이 접수되었습니다');
+  } catch (e) { onErr(e); }
+}
+function waitView() {
+  return statusView('⏳', '승인 대기 중입니다', `${ME.requestedRole === 'admin' ? '관리자 가입은 최종 관리자가' : '협력사 가입은 관리자가'} 승인합니다. 승인되면 이 화면이 자동으로 바뀝니다.`,
+    `<div class="guide" style="text-align:left;margin-top:12px">이름: ${esc(ME.name)}\n이메일: ${esc(ME.email)}\n신청 유형: ${ME.requestedRole === 'admin' ? '관리자' : '협력사 사용자'}${ME.requestedRole === 'partner' ? '\n소속: ' + esc(comp(ME.companyId)?.name || ME.requestedCompany || '') : ''}\n신청일: ${ME.createdAt}</div>`);
+}
+
+/* =========================================================
+   관리자
+   ========================================================= */
+const TABS = [['dash', '대시보드'], ['issue', '지급·반납'], ['req', '특이사항'], ['stock', '장비·재고'], ['comp', '협력사'], ['users', '사용자 승인'], ['export', '엑셀 내보내기']];
+const canApprove = u => u.requestedRole === 'admin' ? isSuper() : isAdmin();
+const pendingUsers = () => S.users.filter(u => u.status === 'pending').sort(byDate);
+function adminView() {
+  const cnt = { issue: S.iss.filter(i => i.status === 'pending').length, req: S.reqs.filter(r => r.status === '접수').length, users: pendingUsers().filter(canApprove).length };
+  if (!TABS.some(([k]) => k === view.tab)) view.tab = 'dash';
+  return topBar() + `<div class="tabs">${TABS.map(([k, n]) => `<button class="${view.tab === k ? 'on' : ''}" onclick="setView({tab:'${k}'})">${n}${cnt[k] ? `<span class="n">${cnt[k]}</span>` : ''}</button>`).join('')}</div>
+    <main>${({ dash, issue: issueTab, req: reqTab, stock: stockTab, comp: compTab, users: usersTab, export: exportTab })[view.tab]()}</main>`;
+}
+function catStats(c) {
+  let stock = 0, o = 0, lost = 0;
+  stock = c.tracking === 'unit' ? S.units.filter(u => u.catId === c.id && u.status === '재고').length : itemsOf(c.id).reduce((a, i) => a + (+i.stock || 0), 0);
+  S.iss.forEach(is => is.lines.forEach(l => { if (l.catId === c.id) { o += out(l); lost += l.lost; } }));
+  return { stock, out: o, lost };
+}
+function itemStats(c, it) {
+  let o = 0, lost = 0;
+  S.iss.forEach(is => is.lines.forEach(l => { if (l.itemId === it.id) { o += out(l); lost += l.lost; } }));
+  const stock = c.tracking === 'unit' ? S.units.filter(u => u.itemId === it.id && u.status === '재고').length : +it.stock || 0;
+  return { stock, out: o, lost };
+}
+const LOW = 5;
+const lowItems = () => cats().flatMap(c => itemsOf(c.id).filter(it => itemStats(c, it).stock <= (c.tracking === 'unit' ? 1 : LOW)));
+const deductList = () => S.reqs.filter(r => r.status === '확인' && r.deduct);
+
+function dash() {
+  if (!S.cats.length) return `<div class="card center"><div class="big">📦</div><h2>장비 구성이 비어 있습니다</h2>
+    <p class="muted">기본 구성(바디캠 · AI 카메라 · 경광등/호출벨 · 혹서기 물품)을 불러온 뒤 장비·재고 탭에서 자유롭게 수정하세요.</p><button class="pri lg" onclick="loadDefaults()">기본 장비 구성 불러오기</button></div>`;
+  const pend = S.iss.filter(i => i.status === 'pending'), nr = S.reqs.filter(r => r.status === '접수'), dl = deductList(), low = lowItems(), pu = pendingUsers().filter(canApprove);
+  const kpi = (v, l, h, tab, alert, extra = '') => `<div class="card kpi ${alert && v ? 'alert' : ''}" onclick="${extra}setView({tab:'${tab}'})"><div class="l">${l}</div><div class="v">${v}</div><div class="h">${h} →</div></div>`;
+  return `<div class="grid kpis" style="margin-bottom:16px">
+    ${kpi(nr.length, '새 특이사항 신고', '확인하기', 'req', 1, "view.reqF='접수';")}
+    ${kpi(pu.length, '가입 승인 대기', '승인하기', 'users', 1)}
+    ${kpi(pend.length, '협력사 서명 대기', '지급 내역 보기', 'issue')}
+    ${kpi(dl.length, '공제 대상 (누적)', dl.length ? won(dl.reduce((a, r) => a + (r.amount || 0), 0)) : '없음', 'req', 0, "view.reqF='공제 대상';")}
+    ${kpi(low.length, '재고 부족 품목', low.slice(0, 3).map(i => i.name).join(', ') || '이상 없음', 'stock', 1)}
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3>📦 장비별 현황</h3><div class="tw"><table><tr><th>장비</th><th class="r">창고 재고</th><th class="r">지급중</th><th class="r">분실 누계</th></tr>
+      ${cats().map(c => { const s = catStats(c); return `<tr><td>${c.icon} ${esc(c.name)}</td><td class="r">${s.stock}</td><td class="r">${s.out}</td><td class="r">${s.lost ? `<b style="color:var(--bad)">${s.lost}</b>` : 0}</td></tr>`; }).join('')}
+    </table></div></div>
+    <div class="card"><h3>🔔 새 신고 ${nr.length ? `<span class="r"><button class="sm dark" onclick="bulkConfirm(S.reqs.filter(r=>r.status==='접수').map(r=>r.id))">모두 확인</button></span>` : ''}</h3>
+      ${nr.length ? `<div class="tw"><table>${nr.sort(byDate).slice(0, 8).map(r => `<tr><td>${esc(comp(r.companyId)?.name)}</td><td>${lineName(r, 1)}</td><td>${typeTag(r.type)}</td><td class="muted">${day(r.date)}</td></tr>`).join('')}</table></div>` : '<div class="empty">새 신고가 없습니다</div>'}
+    </div>
+  </div>`;
+}
+async function loadDefaults() {
+  const ops = [];
+  defaultCats().forEach(([c, its]) => { ops.push(['set', 'cats', c.id, c]); its.forEach(i => ops.push(['set', 'items', i.id, i])); });
+  try { await DB.write(ops); toast('기본 장비 구성을 불러왔습니다'); } catch (e) { onErr(e); }
+}
+
+/* ---- 지급·반납 ---- */
+function lineName(l, withCat) {
+  const c = cat(l.catId), name = item(l.itemId)?.name || l.itemName || '(삭제된 품목)', serial = l.serial || unit(l.unitId)?.serial;
+  return `${withCat && c ? c.icon + ' ' : ''}${esc(name)}${serial ? ` <span class="muted">${esc(serial)}</span>` : ''}`;
+}
+const lineText = l => (item(l.itemId)?.name || l.itemName || '') + (l.serial ? ` (${l.serial})` : '');
+function summary(lines) {
+  const m = {};
+  lines.forEach(l => { const n = item(l.itemId)?.name || l.itemName; m[n] = (m[n] || 0) + l.qty; });
+  return Object.entries(m).map(([n, q]) => `${esc(n)}×${q}`).join(', ');
+}
+function isState(is) {
+  if (is.status === 'pending') return ['서명대기', 't-wait'];
+  return is.lines.some(l => out(l) > 0) ? ['지급중', 't-ok'] : ['반납·종결', 't-gray'];
+}
+function issueTab() {
+  const list = S.iss.filter(i => !view.issComp || i.companyId === view.issComp).sort(byDate);
+  return `<div class="card" id="issueForm"><h3>➕ 새 지급 등록</h3>
+    <label class="f">받는 협력사</label>
+    <select id="ic" data-keep><option value="">선택하세요</option>${comps().map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+    <label class="f">지급할 장비 (필요한 것만 선택/입력)</label>
+    ${cats().map(c => `<details class="cat" open><summary>${c.icon} ${esc(c.name)} <span class="muted" style="font-weight:400">${c.tracking === 'unit' ? '· 시리얼을 눌러 선택' : '· 수량 입력'}</span>
+        ${c.isSet ? `<span class="sp"></span><button class="sm" onclick="event.preventDefault();addSet('${c.id}')">세트 +1</button>` : ''}</summary><div class="in">
+      ${c.tracking === 'unit' ? itemsOf(c.id).map(it => { const us = S.units.filter(u => u.itemId === it.id && u.status === '재고').sort((a, b) => a.serial.localeCompare(b.serial));
+          return `<div style="margin:8px 0"><div class="muted" style="margin-bottom:4px">${esc(it.name)} (재고 ${us.length})</div><div class="chips">
+            ${us.map(u => `<label class="chip unit"><input type="checkbox" id="iu_${u.id}" data-keep data-unit="${u.id}" data-cat="${c.id}" data-item="${it.id}">${esc(u.serial)}</label>`).join('') || '<span class="muted">재고 없음 — 장비·재고 탭에서 시리얼을 등록하세요</span>'}</div></div>`; }).join('')
+        : `<table>${itemsOf(c.id).map(it => `<tr><td>${esc(it.name)}</td><td class="muted r">재고 ${it.stock}</td>
+            <td class="r" style="width:110px"><input class="num" type="number" min="0" max="${it.stock}" placeholder="0" id="iq_${it.id}" data-keep data-q data-cat="${c.id}" data-item="${it.id}"></td></tr>`).join('')}</table>`}
+    </div></details>`).join('') || '<div class="empty">장비 구성이 없습니다</div>'}
+    <label class="f">추가 안내사항 (선택) — 장비별 기본 안내문은 자동으로 함께 표시됩니다</label>
+    <textarea id="inote" data-keep placeholder="예: 3공구 야간작업조 지급분, 매주 금요일 점검"></textarea>
+    <div class="row" style="margin-top:12px"><span class="sp"></span><button class="pri lg" onclick="submitIssue(this)">지급 등록 → 협력사 서명 요청</button></div>
+  </div>
+  <div class="card"><h3>📋 지급 내역<span class="r"><select style="width:auto" onchange="view.issComp=this.value;render()"><option value="">전체 협력사</option>
+      ${comps().map(c => `<option value="${c.id}" ${view.issComp === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></span></h3>
+    ${list.length ? `<div class="tw"><table><tr><th>번호</th><th>지급일</th><th>협력사</th><th>품목</th><th>상태</th><th></th></tr>
+      ${list.map(is => { const [s, cl] = isState(is); return `<tr><td>${is.no}</td><td>${day(is.date)}</td><td>${esc(comp(is.companyId)?.name)}</td><td>${summary(is.lines)}</td><td>${tag(s, cl)}</td>
+        <td class="r" style="white-space:nowrap"><button class="sm" onclick="issDetail('${is.id}')">상세</button>
+        ${is.status === 'signed' && s !== '반납·종결' ? `<button class="sm dark" onclick="returnModal('${is.id}')">반납</button>` : ''}
+        ${is.status === 'pending' ? `<button class="sm danger" onclick="cancelIssuance('${is.id}')">취소</button>` : ''}</td></tr>`; }).join('')}</table></div>` : '<div class="empty">지급 내역이 없습니다</div>'}
+  </div>`;
+}
+function addSet(cid) { $$(`input[data-q][data-cat="${cid}"]`).forEach(i => i.value = (+i.value || 0) + 1); }
+async function submitIssue(btn) {
+  const companyId = $('#ic').value; if (!companyId) return toast('받는 협력사를 선택하세요');
+  const lines = [];
+  $$('input[data-unit]:checked').forEach(i => lines.push({ catId: i.dataset.cat, itemId: i.dataset.item, unitId: i.dataset.unit, qty: 1 }));
+  $$('input[data-q]').forEach(i => { const q = Math.floor(+i.value || 0); if (q > 0) lines.push({ catId: i.dataset.cat, itemId: i.dataset.item, unitId: null, qty: q }); });
+  if (!lines.length) return toast('지급할 장비를 선택하세요');
+  const notes = $('#inote').value.trim();
+  btn.disabled = true;
+  try {
+    const no = await DB.tx(async t => {
+      const cnt = await t.get('meta', 'counters') || {}, its = {}, us = {};
+      for (const l of lines) { if (l.unitId) us[l.unitId] = await t.get('units', l.unitId); else if (!its[l.itemId]) its[l.itemId] = await t.get('items', l.itemId); }
+      const need = {}; lines.forEach(l => { if (!l.unitId) need[l.itemId] = (need[l.itemId] || 0) + l.qty; });
+      for (const [id, q] of Object.entries(need)) if ((its[id]?.stock || 0) < q) throw new Error(`${its[id]?.name} 재고(${its[id]?.stock || 0})가 부족합니다`);
+      for (const [id, u] of Object.entries(us)) if (!u || u.status !== '재고') throw new Error(`${u?.serial || id}은(는) 이미 지급되었거나 사용할 수 없습니다`);
+      const { nos, patch } = numbering(cnt, '지급');
+      t.set('meta', 'counters', { ...cnt, ...patch });
+      t.set('iss', DB.newId(), { no: nos[0], companyId, date: now(), notes, status: 'pending', returns: [], createdBy: ME.name,
+        lines: lines.map(l => ({ lid: uid('l'), catId: l.catId, itemId: l.itemId, itemName: item(l.itemId)?.name || '', unitId: l.unitId, serial: l.unitId ? us[l.unitId].serial : null, qty: l.qty, returned: 0, lost: 0 })) });
+      Object.entries(need).forEach(([id, q]) => t.update('items', id, { stock: DB.inc(-q) }));
+      Object.keys(us).forEach(id => t.update('units', id, { status: '지급', companyId }));
+      return nos[0];
+    });
+    $$('#issueForm [data-keep]').forEach(el => el.type === 'checkbox' ? el.checked = false : el.value = '');
+    render(); toast(`${no} 등록 — ${comp(companyId)?.name}의 서명을 기다립니다`);
+  } catch (e) { onErr(e); btn.disabled = false; }
+}
+async function cancelIssuance(id) {
+  const is0 = S.iss.find(x => x.id === id);
+  if (!is0 || !confirm(`${is0.no} 지급을 취소할까요? 재고가 복원됩니다.`)) return;
+  try {
+    await DB.tx(async t => {
+      const is = await t.get('iss', id);
+      if (!is || is.status !== 'pending') throw new Error('이미 서명되었거나 없는 지급 건입니다');
+      is.lines.forEach(l => l.unitId ? t.update('units', l.unitId, { status: '재고', companyId: null }) : t.update('items', l.itemId, { stock: DB.inc(l.qty) }));
+      t.delete('iss', id);
+    });
+    toast('지급이 취소되었습니다');
+  } catch (e) { onErr(e); }
+}
+function issLines(is) {
+  return `<div class="tw"><table><tr><th>장비</th><th class="r">지급</th><th class="r">반납</th><th class="r">분실</th><th class="r">보유중</th></tr>
+    ${is.lines.map(l => `<tr><td>${lineName(l, 1)}</td><td class="r">${l.qty}</td><td class="r">${l.returned || ''}</td><td class="r">${l.lost || ''}</td><td class="r"><b>${out(l)}</b></td></tr>`).join('')}</table></div>`;
+}
+function guides(is) {
+  const cs = [...new Set(is.lines.map(l => l.catId))].map(cat).filter(c => c?.guide);
+  return cs.map(c => `<div class="guide"><b>${c.icon} ${esc(c.name)}</b>\n${esc(c.guide)}</div>`).join('') + (is.notes ? `<div class="guide"><b>📝 추가 안내</b>\n${esc(is.notes)}</div>` : '');
+}
+function issDetail(id) {
+  const is = S.iss.find(x => x.id === id), [s, cl] = isState(is);
+  openModal(`<h2>${is.no} ${tag(s, cl)}</h2><div class="muted">${esc(comp(is.companyId)?.name)} · 지급일 ${is.date}${is.createdBy ? ' · 담당 ' + esc(is.createdBy) : ''}</div>
+    <label class="f">장비</label>${issLines(is)}<label class="f">안내사항</label>${guides(is) || '<div class="muted">없음</div>'}
+    ${is.returns?.length ? `<label class="f">반납 기록</label>${is.returns.map(r => `<div class="muted">${r.date} · ${esc(r.text)}${r.by ? ' · ' + esc(r.by) : ''}</div>`).join('')}` : ''}
+    <label class="f">수령 서명</label>${is.status === 'signed' ? `<div>${esc(is.signer)} · ${is.signedAt}</div>${is.sig ? `<img src="${is.sig}" style="max-width:260px;border:1px solid var(--line);border-radius:8px;margin-top:6px">` : ''}` : '<div class="muted">협력사 서명 대기 중</div>'}
+    <div class="foot"><button onclick="closeModal()">닫기</button></div>`);
+}
+function returnModal(id) {
+  const is = S.iss.find(x => x.id === id);
+  openModal(`<h2>반납 처리</h2><div class="muted">${is.no} · ${esc(comp(is.companyId)?.name)}</div>
+    <div class="tw" style="margin-top:12px"><table><tr><th>장비</th><th class="r">보유중</th><th class="r">반납</th></tr>
+    ${is.lines.filter(l => out(l) > 0).map(l => `<tr><td>${lineName(l, 1)}</td><td class="r">${out(l)}</td><td class="r">
+      ${l.unitId ? `<input type="checkbox" data-ret="${l.lid}">` : `<input class="num" type="number" min="0" max="${out(l)}" placeholder="0" data-ret="${l.lid}">`}</td></tr>`).join('')}</table></div>
+    <div class="foot"><button onclick="$$('[data-ret]').forEach(i=>i.type==='checkbox'?i.checked=true:i.value=i.max)">전체 반납</button><span class="sp"></span>
+      <button onclick="closeModal()">취소</button><button class="pri" onclick="doReturn('${id}')">반납 확인</button></div>`);
+}
+async function doReturn(id) {
+  const want = {};
+  $$('[data-ret]').forEach(i => { const n = i.type === 'checkbox' ? (i.checked ? 1 : 0) : Math.floor(+i.value || 0); if (n > 0) want[i.dataset.ret] = n; });
+  if (!Object.keys(want).length) return toast('반납할 수량을 입력하세요');
+  try {
+    await DB.tx(async t => {
+      const is = await t.get('iss', id), done = [];
+      is.lines.forEach(l => {
+        const n = Math.min(want[l.lid] || 0, out(l)); if (!n) return;
+        l.returned += n; done.push(`${lineText(l)}×${n}`);
+        l.unitId ? t.update('units', l.unitId, { status: '재고', companyId: null }) : t.update('items', l.itemId, { stock: DB.inc(n) });
+      });
+      t.update('iss', id, { lines: is.lines, returns: [...(is.returns || []), { date: now(), text: done.join(', '), by: ME.name }] });
+    });
+    closeModal(); toast('반납 처리되었습니다');
+  } catch (e) { onErr(e); }
+}
+
+/* ---- 특이사항 (공제 대상 취합 포함) ---- */
+function reqTab() {
+  const F = ['접수', '확인', '반려', '공제 대상', '전체'];
+  const match = r => view.reqF === '전체' || (view.reqF === '공제 대상' ? r.status === '확인' && r.deduct : r.status === view.reqF);
+  const list = S.reqs.filter(r => match(r) && (!view.reqCat || r.catId === view.reqCat) && (!view.reqComp || r.companyId === view.reqComp)).sort(byDate);
+  const cntF = f => S.reqs.filter(r => f === '전체' || (f === '공제 대상' ? r.status === '확인' && r.deduct : r.status === f)).length;
+  const isNew = view.reqF === '접수', isDd = view.reqF === '공제 대상';
+  let ddSum = '';
+  if (isDd && list.length) {
+    const by = {}; list.forEach(r => { by[r.companyId] = by[r.companyId] || [0, 0]; by[r.companyId][0]++; by[r.companyId][1] += r.amount || 0; });
+    ddSum = `<div class="tw" style="margin-bottom:14px"><table><tr><th>협력사</th><th class="r">건수</th><th class="r">공제 금액</th></tr>
+      ${Object.entries(by).map(([c, [n, a]]) => `<tr><td>${esc(comp(c)?.name)}</td><td class="r">${n}</td><td class="r"><b>${won(a)}</b></td></tr>`).join('')}
+      <tr class="grp"><td>합계</td><td class="r">${list.length}</td><td class="r">${won(list.reduce((a, r) => a + (r.amount || 0), 0))}</td></tr></table></div>`;
+  }
+  return `<div class="card"><h3>⚠️ 특이사항 신고
+      <span class="r"><select style="width:auto" onchange="view.reqComp=this.value;render()"><option value="">전체 협력사</option>${comps().map(c => `<option value="${c.id}" ${view.reqComp === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+      <select style="width:auto" onchange="view.reqCat=this.value;render()"><option value="">전체 장비</option>${cats().map(c => `<option value="${c.id}" ${view.reqCat === c.id ? 'selected' : ''}>${c.icon} ${esc(c.name)}</option>`).join('')}</select></span></h3>
+    <div class="row" style="margin-bottom:12px">${F.map(f => `<button class="sm ${view.reqF === f ? 'dark' : ''}" onclick="view.reqF='${f}';sel=new Set();render()">${f} ${cntF(f)}</button>`).join('')}
+      <span class="sp"></span>${isNew && list.length ? `<button class="sm dark" onclick="bulkConfirm([...sel])">선택 일괄 확인</button><button class="sm" onclick="bulkReject([...sel])">선택 반려</button>` : ''}
+      ${isDd && list.length ? `<button class="sm" onclick="exportDeduct()">⬇ 공제 내역 엑셀</button>` : ''}</div>
+    ${ddSum}
+    ${list.length ? `<div class="tw"><table><tr>${isNew ? `<th><input type="checkbox" onchange="sel=new Set(this.checked?${esc(JSON.stringify(list.map(r => r.id)))}:[]);$$('[data-sel]').forEach(i=>i.checked=this.checked)"></th>` : ''}
+      <th>접수일</th><th>협력사</th><th>장비</th><th>유형</th><th class="r">수량</th><th>내용</th><th>상태</th><th class="r">공제</th><th></th></tr>
+      ${list.map(r => `<tr>${isNew ? `<td><input type="checkbox" data-sel ${sel.has(r.id) ? 'checked' : ''} onchange="this.checked?sel.add('${r.id}'):sel.delete('${r.id}')"></td>` : ''}
+        <td class="muted">${day(r.date)}</td><td>${esc(comp(r.companyId)?.name)}<div class="muted">${esc(r.by || '')}</div></td><td>${lineName(r, 1)}</td><td>${typeTag(r.type)}</td><td class="r">${r.qty}</td>
+        <td style="max-width:260px">${esc(r.desc)}${r.adminNote ? `<div class="muted">↳ ${esc(r.adminNote)}</div>` : ''}</td><td>${reqTag(r.status)}</td>
+        <td class="r">${r.deduct ? (isDd ? `<input class="num" style="width:110px" type="number" value="${r.amount || 0}" onchange="setAmount('${r.id}',this.value)">` : won(r.amount)) : '-'}</td>
+        <td class="r" style="white-space:nowrap">${r.status === '접수' ? `<button class="sm dark" onclick="bulkConfirm(['${r.id}'])">확인</button><button class="sm" onclick="bulkReject(['${r.id}'])">반려</button>` : ''}</td></tr>`).join('')}
+      </table></div>` : '<div class="empty">해당하는 신고가 없습니다</div>'}
+    <p class="muted" style="margin:12px 0 0">확인하면 분실 건은 보유 수량에서 차감되고, 공제 대상 유형(장비·재고 › 설정)은 단가×수량으로 <b>공제 대상</b>에 자동 취합됩니다.</p></div>`;
+}
+async function setAmount(id, v) { try { await DB.write([['update', 'reqs', id, { amount: +v || 0 }]]); } catch (e) { onErr(e); } }
+async function bulkConfirm(ids) {
+  if (!ids.length) return toast('확인할 신고를 선택하세요');
+  try {
+    const [n, d] = await DB.tx(async t => {
+      const rs = [], isd = {};
+      for (const id of ids) { const r = await t.get('reqs', id); if (r && r.status === '접수') rs.push(r); }
+      for (const r of rs) if (r.type === '분실' && !(r.issId in isd)) isd[r.issId] = await t.get('iss', r.issId);
+      let d = 0;
+      for (const r of rs) {
+        const c = cat(r.catId); let q = r.qty;
+        if (r.type === '분실') {
+          const l = isd[r.issId]?.lines.find(x => x.lid === r.lid);
+          if (l) { q = Math.min(q, out(l)); l.lost += q; if (l.unitId) t.update('units', l.unitId, { status: '분실' }); }
+        }
+        const deduct = !!c?.deductTypes?.includes(r.type); if (deduct) d++;
+        t.update('reqs', r.id, { status: '확인', doneAt: now(), doneBy: ME.name, qty: q, deduct, amount: deduct ? (item(r.itemId)?.price || 0) * q : 0 });
+      }
+      Object.values(isd).forEach(is => is && t.update('iss', is.id, { lines: is.lines }));
+      return [rs.length, d];
+    });
+    sel = new Set(); render(); toast(`${n}건 확인 완료${d ? ` · 공제 대상 ${d}건 취합됨` : ''}`);
+  } catch (e) { onErr(e); }
+}
+async function bulkReject(ids) {
+  if (!ids.length) return toast('반려할 신고를 선택하세요');
+  const why = prompt('반려 사유 (협력사에 표시됩니다)', ''); if (why === null) return;
+  try { await DB.write(ids.map(id => ['update', 'reqs', id, { status: '반려', doneAt: now(), doneBy: ME.name, adminNote: why }])); sel = new Set(); render(); toast(`${ids.length}건 반려`); } catch (e) { onErr(e); }
+}
+
+/* ---- 장비·재고 ---- */
+function stockTab() {
+  return `<div class="row" style="margin-bottom:14px"><span class="muted">장비 종류, 품목(구성품), 단가, 재고, 신고·공제 유형을 자유롭게 바꿀 수 있습니다. 변경 내용은 모든 사용자에게 즉시 반영됩니다.</span><span class="sp"></span>
+    <button class="dark" onclick="catModal()">＋ 새 장비 종류</button></div>` + (cats().map(c => {
+    const unitMode = c.tracking === 'unit';
+    return `<div class="card"><h3>${c.icon} ${esc(c.name)} ${tag(unitMode ? '개별관리(시리얼)' : '수량관리', 't-gray')} ${c.isSet ? tag('세트 지급', 't-blue') : ''}
+      <span class="r"><button class="sm" onclick="catModal('${c.id}')">⚙️ 설정</button></span></h3>
+      <div class="tw"><table><tr><th>${c.isSet ? '구성품' : '품목'}</th><th class="r">단가(공제기준)</th><th class="r">창고 재고</th><th class="r">지급중</th><th class="r">분실 누계</th><th></th></tr>
+      ${itemsOf(c.id).map(it => { const s = itemStats(c, it), low = s.stock <= (unitMode ? 1 : LOW);
+        return `<tr><td><input value="${esc(it.name)}" style="max-width:180px" onchange="updItem('${it.id}',{name:this.value})"></td>
+        <td class="r"><input class="num" style="width:110px" type="number" value="${it.price || 0}" onchange="updItem('${it.id}',{price:+this.value})"></td>
+        <td class="r">${unitMode ? s.stock : `<input class="num" type="number" value="${it.stock}" onchange="updItem('${it.id}',{stock:+this.value})">`} ${low ? tag('부족', 't-bad') : ''}</td>
+        <td class="r">${s.out}</td><td class="r">${s.lost}</td><td class="r"><button class="sm ghost" onclick="delItem('${it.id}')">삭제</button></td></tr>`; }).join('')}
+      <tr><td><input id="ni_${c.id}" data-keep placeholder="${c.isSet ? '새 구성품 이름' : '새 품목 이름'}" style="max-width:180px"></td><td class="r"><input id="np_${c.id}" data-keep class="num" style="width:110px" type="number" placeholder="단가"></td>
+        <td class="r">${unitMode ? '' : `<input id="ns_${c.id}" data-keep class="num" type="number" placeholder="재고">`}</td><td colspan="3" class="r"><button class="sm dark" onclick="addItem('${c.id}')">추가</button></td></tr></table></div>
+      ${unitMode ? unitBlock(c) : ''}</div>`;
+  }).join('') || dash());
+}
+function unitBlock(c) {
+  const all = S.units.filter(u => u.catId === c.id), us = all.filter(u => !view.uf || u.status === view.uf).sort((a, b) => a.serial.localeCompare(b.serial));
+  const ST = ['재고', '지급', '수리', '분실', '폐기'];
+  return `<details class="cat" style="margin-top:14px" ${view.uOpen === c.id ? 'open' : ''} ontoggle="if(this.open)view.uOpen='${c.id}'"><summary>🔢 개별 장비 ${all.length}대 (시리얼 관리)</summary><div class="in">
+    <div class="row"><select id="ui_${c.id}" data-keep style="width:auto">${itemsOf(c.id).map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('')}</select>
+      <input id="us_${c.id}" data-keep style="flex:1;min-width:200px" placeholder="시리얼 번호 (여러 개는 쉼표·줄바꿈으로 구분)"><button class="sm dark" onclick="addUnits('${c.id}')">등록</button></div>
+    <div class="row" style="margin:10px 0">${['', ...ST].map(s => `<button class="sm ${(view.uf || '') === s ? 'dark' : ''}" onclick="view.uf='${s}';view.uOpen='${c.id}';render()">${s || '전체'} ${all.filter(u => !s || u.status === s).length}</button>`).join('')}</div>
+    <div class="tw"><table><tr><th>시리얼</th><th>품목</th><th>상태</th><th>보유/분실 협력사</th></tr>
+    ${us.map(u => `<tr><td>${esc(u.serial)}</td><td>${esc(item(u.itemId)?.name)}</td>
+      <td><select style="width:auto" onchange="setUnitStatus('${u.id}',this.value)" ${u.status === '지급' ? 'disabled' : ''}>${ST.map(s => `<option ${u.status === s ? 'selected' : ''} ${s === '지급' ? 'disabled' : ''}>${s}</option>`).join('')}</select></td>
+      <td>${esc(comp(u.companyId)?.name || '')}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</table></div></div></details>`;
+}
+async function updItem(id, p) { try { await DB.write([['update', 'items', id, p]]); } catch (e) { onErr(e); } }
+async function setUnitStatus(id, s) { try { await DB.write([['update', 'units', id, s === '재고' ? { status: s, companyId: null } : { status: s }]]); } catch (e) { onErr(e); } }
+async function addUnits(cid) {
+  const itemId = $('#ui_' + cid).value, sers = [...new Set($('#us_' + cid).value.split(/[\n,]+/).map(s => s.trim()).filter(Boolean))];
+  if (!itemId) return toast('먼저 품목을 추가하세요');
+  if (!sers.length) return toast('시리얼 번호를 입력하세요');
+  const dup = sers.filter(s => S.units.some(u => u.serial === s)), ok = sers.filter(s => !dup.includes(s));
+  try { await DB.write(ok.map(serial => ['set', 'units', DB.newId(), { catId: cid, itemId, serial, status: '재고', companyId: null }])); $('#us_' + cid).value = ''; view.uOpen = cid; render(); toast(`${ok.length}대 등록${dup.length ? ` (중복 ${dup.length}건 제외)` : ''}`); } catch (e) { onErr(e); }
+}
+async function addItem(cid) {
+  const c = cat(cid), name = $('#ni_' + cid).value.trim(); if (!name) return toast('이름을 입력하세요');
+  const order = Math.max(0, ...itemsOf(cid).map(i => i.order || 0)) + 1;
+  try {
+    await DB.write([['set', 'items', DB.newId(), { catId: cid, name, order, price: +$('#np_' + cid).value || 0, stock: c.tracking === 'unit' ? 0 : +($('#ns_' + cid)?.value) || 0 }]]);
+    ['ni_', 'np_', 'ns_'].forEach(p => { const el = $('#' + p + cid); if (el) el.value = ''; }); render(); toast(`${name} 추가됨`);
+  } catch (e) { onErr(e); }
+}
+async function delItem(id) {
+  if (S.iss.some(is => is.lines.some(l => l.itemId === id)) || S.units.some(u => u.itemId === id)) return toast('지급 이력이나 등록된 장비가 있어 삭제할 수 없습니다');
+  if (!confirm('삭제할까요?')) return;
+  try { await DB.write([['delete', 'items', id]]); } catch (e) { onErr(e); }
+}
+function catModal(id) {
+  const c = id ? cat(id) : { name: '', icon: '🦺', tracking: 'qty', isSet: false, issueTypes: ['고장', '파손', '분실', '기타'], deductTypes: ['분실'], guide: '' };
+  const T = [...new Set(['고장', '파손', '분실', '기타', ...c.issueTypes])];
+  openModal(`<h2>${id ? '장비 설정' : '새 장비 종류'}</h2>
+    <div class="row"><div style="width:90px"><label class="f">아이콘</label><input id="cm_icon" value="${esc(c.icon)}"></div><div style="flex:1"><label class="f">이름</label><input id="cm_name" value="${esc(c.name)}" placeholder="예: 안전대"></div></div>
+    <label class="f">관리 방식</label><div class="chips">
+      <label class="chip"><input type="radio" name="cm_tr" value="unit" ${c.tracking === 'unit' ? 'checked' : ''} ${id ? 'disabled' : ''}>개별관리 — 시리얼 번호로 한 대씩</label>
+      <label class="chip"><input type="radio" name="cm_tr" value="qty" ${c.tracking === 'qty' ? 'checked' : ''} ${id ? 'disabled' : ''}>수량관리 — 개수로만</label></div>
+    ${id ? '<div class="muted">관리 방식은 생성 후 바꿀 수 없습니다.</div>' : ''}
+    <label class="f"><input type="checkbox" id="cm_set" ${c.isSet ? 'checked' : ''}> 세트 지급 사용 (지급 화면에 ‘세트 +1’ 버튼 — 구성품을 1개씩 한 번에 추가)</label>
+    <label class="f">협력사가 신고할 수 있는 유형 (쉼표로 구분)</label><input id="cm_types" value="${esc(c.issueTypes.join(', '))}">
+    <label class="f">공제 대상 유형 — 확인 시 ‘공제 대상’에 자동 취합</label><div class="chips">${T.map(t => `<label class="chip"><input type="checkbox" name="cm_dd" value="${esc(t)}" ${c.deductTypes.includes(t) ? 'checked' : ''}>${esc(t)}</label>`).join('')}</div>
+    <label class="f">지급 시 안내문 — 협력사가 서명 전에 확인합니다</label><textarea id="cm_guide">${esc(c.guide)}</textarea>
+    <div class="foot">${id ? `<button class="danger" onclick="delCat('${id}')">삭제</button><span class="sp"></span>` : ''}<button onclick="closeModal()">취소</button><button class="pri" onclick="saveCat('${id || ''}')">저장</button></div>`);
+}
+async function saveCat(id) {
+  const name = $('#cm_name').value.trim(); if (!name) return toast('이름을 입력하세요');
+  const issueTypes = $('#cm_types').value.split(',').map(s => s.trim()).filter(Boolean);
+  const v = { name, icon: $('#cm_icon').value.trim() || '🦺', isSet: $('#cm_set').checked, issueTypes, deductTypes: $$('[name=cm_dd]:checked').map(i => i.value).filter(t => issueTypes.includes(t)), guide: $('#cm_guide').value.trim() };
+  try {
+    await DB.write([id ? ['update', 'cats', id, v] : ['set', 'cats', DB.newId(), { ...v, tracking: $('[name=cm_tr]:checked')?.value || 'qty', order: Math.max(0, ...S.cats.map(c => c.order || 0)) + 1 }]]);
+    closeModal(); toast('저장되었습니다');
+  } catch (e) { onErr(e); }
+}
+async function delCat(id) {
+  if (S.iss.some(is => is.lines.some(l => l.catId === id))) return toast('지급 이력이 있는 장비 종류는 삭제할 수 없습니다');
+  if (!confirm('이 장비 종류와 품목·등록 장비를 모두 삭제할까요?')) return;
+  try { await DB.write([['delete', 'cats', id], ...itemsOf(id).map(i => ['delete', 'items', i.id]), ...S.units.filter(u => u.catId === id).map(u => ['delete', 'units', u.id])]); closeModal(); } catch (e) { onErr(e); }
+}
+
+/* ---- 협력사 ---- */
+function compTab() {
+  return `<div class="card"><h3>🏢 협력사</h3><div class="tw"><table><tr><th>협력사명</th><th>담당자</th><th>연락처</th><th class="r">사용자</th><th class="r">보유 장비</th><th class="r">서명대기</th><th class="r">미처리 신고</th><th></th></tr>
+    ${comps().map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.manager)}</td><td>${esc(c.phone)}</td>
+      <td class="r">${S.users.filter(u => u.companyId === c.id && u.status === 'approved').length}</td>
+      <td class="r">${holdings(c.id).reduce((a, h) => a + h.n, 0)}</td><td class="r">${S.iss.filter(i => i.companyId === c.id && i.status === 'pending').length}</td>
+      <td class="r">${S.reqs.filter(r => r.companyId === c.id && r.status === '접수').length}</td>
+      <td class="r" style="white-space:nowrap"><button class="sm" onclick="compModal('${c.id}')">수정</button><button class="sm" onclick="view.issComp='${c.id}';setView({tab:'issue'})">지급 내역</button></td></tr>`).join('') || '<tr><td colspan="8" class="empty">협력사가 없습니다</td></tr>'}
+    </table></div><div class="row" style="margin-top:12px"><span class="muted">가입 승인 시 ‘새 협력사 등록’을 선택하면 자동으로 추가됩니다.</span><span class="sp"></span><button class="dark" onclick="compModal()">＋ 협력사 추가</button></div></div>`;
+}
+function holdings(companyId) {
+  const r = [];
+  S.iss.filter(is => is.companyId === companyId && is.status === 'signed').forEach(is => is.lines.forEach(l => { if (out(l) > 0) r.push({ is, l, n: out(l) }); }));
+  return r;
+}
+function compModal(id) {
+  const c = id ? comp(id) : { name: '', manager: '', phone: '' };
+  openModal(`<h2>${id ? '협력사 수정' : '협력사 추가'}</h2><label class="f">협력사명</label><input id="cp_n" value="${esc(c.name)}">
+    <label class="f">담당자</label><input id="cp_m" value="${esc(c.manager)}"><label class="f">연락처</label><input id="cp_p" value="${esc(c.phone)}">
+    <div class="foot">${id ? `<button class="danger" onclick="delComp('${id}')">삭제</button><span class="sp"></span>` : ''}<button onclick="closeModal()">취소</button><button class="pri" onclick="saveComp('${id || ''}')">저장</button></div>`);
+}
+async function saveComp(id) {
+  const v = { name: $('#cp_n').value.trim(), manager: $('#cp_m').value.trim(), phone: $('#cp_p').value.trim() };
+  if (!v.name) return toast('협력사명을 입력하세요');
+  try { await DB.write([id ? ['update', 'comps', id, v] : ['set', 'comps', DB.newId(), v]]); closeModal(); } catch (e) { onErr(e); }
+}
+async function delComp(id) {
+  if (S.iss.some(i => i.companyId === id) || S.users.some(u => u.companyId === id && u.status === 'approved')) return toast('지급 이력이나 소속 사용자가 있는 협력사는 삭제할 수 없습니다');
+  if (!confirm('삭제할까요?')) return;
+  try { await DB.write([['delete', 'comps', id]]); closeModal(); } catch (e) { onErr(e); }
+}
+
+/* ---- 사용자 승인 ---- */
+function usersTab() {
+  const pend = pendingUsers(), mem = S.users.filter(u => u.status !== 'pending').sort((a, b) => (a.status === 'approved' ? 0 : 1) - (b.status === 'approved' ? 0 : 1) || String(a.name).localeCompare(String(b.name)));
+  const roleOf = u => String(u.email).toLowerCase() === SUPER ? 'super' : u.role;
+  return `<div class="card"><h3>🙋 가입 승인 대기 ${pend.length ? tag(pend.length + '명', 't-acc') : ''}</h3>
+    <p class="muted" style="margin-top:-6px">협력사 사용자는 관리자 누구나, 관리자 가입은 <b>최종 관리자</b>만 승인할 수 있습니다.</p>
+    ${pend.length ? `<div class="tw"><table><tr><th>신청일</th><th>이름 / 이메일</th><th>신청 유형</th><th>소속</th><th></th></tr>
+      ${pend.map(u => `<tr><td class="muted">${day(u.createdAt)}</td><td><b>${esc(u.name)}</b><div class="muted">${esc(u.email)}${u.phone ? ' · ' + esc(u.phone) : ''}</div></td>
+        <td>${u.requestedRole === 'admin' ? tag('관리자', 't-blue') : tag('협력사 사용자', 't-gray')}</td>
+        <td>${u.requestedRole === 'partner' ? `<select id="ap_${u.id}" data-keep style="min-width:160px">
+            ${u.requestedCompany ? `<option value="__new">＋ 새 협력사 등록: ${esc(u.requestedCompany)}</option>` : '<option value="">선택하세요</option>'}
+            ${comps().map(c => `<option value="${c.id}" ${u.companyId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>` : '-'}</td>
+        <td class="r" style="white-space:nowrap">${canApprove(u) ? `<button class="sm pri" onclick="approveUser('${u.id}')">승인</button><button class="sm" onclick="rejectUser('${u.id}')">거절</button>` : tag('최종 관리자 승인 필요', 't-wait')}</td></tr>`).join('')}</table></div>`
+      : '<div class="empty">대기 중인 가입 신청이 없습니다</div>'}</div>
+  <div class="card"><h3>👥 사용자</h3><div class="tw"><table><tr><th>이름 / 이메일</th><th>권한</th><th>소속</th><th>상태</th><th>승인</th><th></th></tr>
+    ${mem.map(u => { const self = u.id === AUTH.uid, r = roleOf(u), editable = !self && (isSuper() ? r !== 'super' || String(u.email).toLowerCase() !== SUPER : r === 'partner');
+      return `<tr><td><b>${esc(u.name)}</b>${self ? ' (나)' : ''}<div class="muted">${esc(u.email)}</div></td>
+      <td>${isSuper() && editable && u.status === 'approved' ? `<select style="width:auto" onchange="setRole('${u.id}',this.value,this)">${['partner', 'admin', 'super'].map(x => `<option value="${x}" ${r === x ? 'selected' : ''}>${ROLE[x]}</option>`).join('')}</select>` : tag(ROLE[r] || r, r === 'super' ? 't-acc' : r === 'admin' ? 't-blue' : 't-gray')}</td>
+      <td>${r === 'partner' && editable ? `<select style="width:auto" onchange="changeUser('${u.id}',{companyId:this.value})">${comps().map(c => `<option value="${c.id}" ${u.companyId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>` : esc(comp(u.companyId)?.name || '-')}</td>
+      <td>${u.status === 'approved' ? tag('사용중', 't-ok') : u.status === 'rejected' ? tag('반려', 't-gray') : tag('중지', 't-bad')}</td>
+      <td class="muted">${esc(u.approvedBy || '')}<br>${day(u.approvedAt)}</td>
+      <td class="r">${editable ? (u.status === 'approved' ? `<button class="sm danger" onclick="if(confirm('${esc(u.name)} 님의 사용을 중지할까요?'))changeUser('${u.id}',{status:'disabled'})">사용 중지</button>`
+        : u.status === 'disabled' ? `<button class="sm" onclick="changeUser('${u.id}',{status:'approved'})">다시 허용</button>` : '') : ''}</td></tr>`; }).join('')}
+    </table></div></div>`;
+}
+async function approveUser(id) {
+  const u = user(id); if (!canApprove(u)) return toast('최종 관리자만 승인할 수 있습니다');
+  const ops = []; let companyId = null;
+  if (u.requestedRole === 'partner') {
+    const v = $('#ap_' + id).value; if (!v) return toast('소속 협력사를 선택하세요');
+    if (v === '__new') { companyId = DB.newId(); ops.push(['set', 'comps', companyId, { name: u.requestedCompany, manager: u.name, phone: u.phone || '' }]); } else companyId = v;
+  }
+  ops.push(['update', 'users', id, { status: 'approved', role: u.requestedRole === 'admin' ? 'admin' : 'partner', companyId, approvedBy: ME.name, approvedAt: now() }]);
+  try { await DB.write(ops); toast(`${u.name} 님 승인 완료`); } catch (e) { onErr(e); }
+}
+async function rejectUser(id) {
+  const why = prompt('거절 사유 (신청자에게 표시됩니다)', ''); if (why === null) return;
+  try { await DB.write([['update', 'users', id, { status: 'rejected', rejectReason: why, approvedBy: ME.name, approvedAt: now() }]]); } catch (e) { onErr(e); }
+}
+async function changeUser(id, p) { try { await DB.write([['update', 'users', id, p]]); } catch (e) { onErr(e); } }
+async function setRole(id, role, el) {
+  const u = user(id), p = { role };
+  if (role === 'partner' && !u.companyId) {
+    const opts = comps().map((c, i) => `${i + 1}. ${c.name}`).join('\n'), k = prompt(`소속 협력사 번호를 입력하세요\n${opts}`);
+    const c = comps()[(+k || 0) - 1]; if (!c) { el.value = u.role; return toast('협력사를 지정해야 합니다'); }
+    p.companyId = c.id;
+  }
+  if (role !== 'partner') p.companyId = null;
+  if (role === 'super' && !confirm(`${u.name} 님을 최종 관리자로 지정할까요? 관리자 승인 권한을 갖게 됩니다.`)) { el.value = u.role; return; }
+  await changeUser(id, p);
+}
+
+/* ---- 엑셀 내보내기 ---- */
+function rowsStock(c) {
+  if (c.tracking === 'unit') return S.units.filter(u => u.catId === c.id).map(u => ({ '장비': c.name, '품목': item(u.itemId)?.name, '시리얼': u.serial, '상태': u.status, '보유/분실 협력사': comp(u.companyId)?.name || '' }));
+  return itemsOf(c.id).map(it => { const s = itemStats(c, it); return { '장비': c.name, '품목': it.name, '단가': it.price || 0, '창고 재고': s.stock, '지급중': s.out, '분실 누계': s.lost }; });
+}
+function rowsIssue(c) {
+  const r = [];
+  [...S.iss].sort(byDate).forEach(is => is.lines.forEach(l => { if (c && l.catId !== c.id) return;
+    r.push({ '지급번호': is.no, '지급일시': is.date, '협력사': comp(is.companyId)?.name, '장비': cat(l.catId)?.name, '품목': item(l.itemId)?.name || l.itemName, '시리얼': l.serial || '',
+      '지급': l.qty, '반납': l.returned, '분실': l.lost, '보유중': out(l), '서명': is.status === 'signed' ? '완료' : '대기', '서명자': is.signer || '', '서명일시': is.signedAt || '',
+      '반납기록': (is.returns || []).map(x => `${x.date} ${x.text}`).join(' / '), '안내사항': is.notes || '', '등록자': is.createdBy || '' }); }));
+  return r;
+}
+function rowsHold(c) {
+  const r = [];
+  comps().forEach(co => holdings(co.id).forEach(h => { if (c && h.l.catId !== c.id) return;
+    r.push({ '협력사': co.name, '장비': cat(h.l.catId)?.name, '품목': item(h.l.itemId)?.name || h.l.itemName, '시리얼': h.l.serial || '', '보유 수량': h.n, '지급번호': h.is.no, '지급일': day(h.is.date) }); }));
+  return r;
+}
+const reqRow = r => ({ '신고번호': r.no, '접수일시': r.date, '협력사': comp(r.companyId)?.name, '신고자': r.by || '', '장비': cat(r.catId)?.name, '품목': item(r.itemId)?.name || r.itemName,
+  '시리얼': r.serial || '', '유형': r.type, '수량': r.qty, '내용': r.desc, '상태': r.status, '처리일시': r.doneAt || '', '처리자': r.doneBy || '', '공제 대상': r.deduct ? 'Y' : '',
+  '공제 금액': r.deduct ? r.amount : '', '관리자 메모': r.adminNote || '' });
+const rowsReq = c => [...S.reqs].sort(byDate).filter(r => !c || r.catId === c.id).map(reqRow);
+const rowsDeduct = c => deductList().filter(r => !c || r.catId === c.id).sort(byDate).map(r => ({ '협력사': comp(r.companyId)?.name, '장비': cat(r.catId)?.name, '품목': item(r.itemId)?.name || r.itemName,
+  '시리얼': r.serial || '', '수량': r.qty, '단가': item(r.itemId)?.price || 0, '공제 금액': r.amount, '신고일': day(r.date), '확인일': day(r.doneAt), '사유': r.desc, '신고번호': r.no }));
+function xlsx(fname, sheets) {
+  const stamp = now().slice(0, 10).replace(/-/g, '');
+  if (!window.XLSX) {
+    const [, rows] = Object.entries(sheets)[0], keys = Object.keys(rows[0] || { '데이터 없음': '' });
+    const csv = [keys, ...rows.map(r => keys.map(k => r[k]))].map(a => a.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); a.download = `${fname}_${stamp}.csv`; a.click();
+    return toast('엑셀 라이브러리를 불러오지 못해 CSV로 저장했습니다');
+  }
+  const wb = XLSX.utils.book_new();
+  Object.entries(sheets).forEach(([n, rows]) => {
+    const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ '내용': '데이터 없음' }]), keys = Object.keys(rows[0] || { '내용': 1 });
+    ws['!cols'] = keys.map(k => ({ wch: Math.min(50, Math.max(k.length * 2 + 2, ...rows.slice(0, 300).map(r => String(r[k] ?? '').length * 1.6 + 2))) }));
+    XLSX.utils.book_append_sheet(wb, ws, n.slice(0, 31));
+  });
+  XLSX.writeFile(wb, `${fname}_${stamp}.xlsx`); toast('엑셀 파일을 저장했습니다');
+}
+function exportCat(id) { const c = cat(id); xlsx(c.name, { '재고현황': rowsStock(c), '보유현황': rowsHold(c), '지급내역': rowsIssue(c), '특이사항': rowsReq(c), '공제대상': rowsDeduct(c) }); }
+function exportDeduct() { xlsx('공제대상', { '공제대상': rowsDeduct() }); }
+function exportAll() {
+  xlsx('안전장구_전체', { '재고현황': cats().flatMap(rowsStock), '보유현황': rowsHold(), '지급내역': rowsIssue(), '특이사항': rowsReq(), '공제대상': rowsDeduct(),
+    '사용자': S.users.map(u => ({ '이름': u.name, '이메일': u.email, '연락처': u.phone || '', '권한': ROLE[u.role] || u.role, '소속': comp(u.companyId)?.name || '', '상태': u.status, '승인자': u.approvedBy || '', '승인일': u.approvedAt || '' })) });
+}
+function exportTab() {
+  return `<div class="grid kpis" style="margin-bottom:16px">${cats().map(c => { const s = catStats(c); return `<div class="card kpi" onclick="exportCat('${c.id}')">
+      <div class="l">${c.icon} ${esc(c.name)}</div><div style="font-size:14px;margin:8px 0">재고 ${s.stock} · 지급중 ${s.out} · 신고 ${S.reqs.filter(r => r.catId === c.id).length}</div><div class="h">⬇ 엑셀 다운로드</div></div>`; }).join('')}
+    <div class="card kpi" style="border-color:var(--ink)" onclick="exportAll()"><div class="l">📚 전체 통합</div><div style="font-size:14px;margin:8px 0">모든 장비 + 공제대상 + 사용자</div><div class="h">⬇ 엑셀 다운로드</div></div></div>
+  <div class="card"><h3>ℹ️ 파일 구성</h3><div class="muted">장비별 파일은 <b>재고현황 · 보유현황(협력사별) · 지급내역(서명·반납 포함) · 특이사항 · 공제대상</b> 시트로 구성됩니다.</div></div>
+  <div class="card"><h3>💾 데이터 백업</h3><div class="row"><button onclick="backup()">현재 데이터 백업 저장(JSON)</button><span class="muted">서명 이미지를 포함한 전체 데이터를 파일로 보관합니다.</span></div></div>`;
+}
+function backup() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(S)], { type: 'application/json' })); a.download = `안전장구_백업_${now().slice(0, 10)}.json`; a.click(); }
+
+/* =========================================================
+   협력사 사용자
+   ========================================================= */
+function partnerView() {
+  const c = comp(ME.companyId) || { name: '' }, pend = S.iss.filter(i => i.status === 'pending').sort(byDate);
+  const hs = holdings(ME.companyId), my = [...S.reqs].sort(byDate);
+  const openReq = l => S.reqs.find(r => r.lid === l.lid && r.status === '접수');
+  const byCat = {}; hs.forEach(h => (byCat[h.l.catId] = byCat[h.l.catId] || []).push(h));
+  return topBar() + `<main class="narrow">
+    ${pend.length ? `<div class="notice"><h3>✍️ 서명이 필요한 지급 건 ${pend.length}건</h3><div class="muted" style="color:#9a3d06">장비와 안내사항을 확인하고 서명하면 ‘내 보유 장비’에 등록됩니다.</div>
+      ${pend.map(is => `<div class="pend"><div><b>${is.no}</b> <span class="muted">${day(is.date)}</span><div style="font-size:14px">${summary(is.lines)}</div></div><span class="sp"></span>
+        <button class="pri" onclick="signModal('${is.id}')">확인하고 서명</button></div>`).join('')}</div>` : ''}
+    <div class="card"><h3>🦺 ${esc(c.name)} 보유 장비 <span class="muted" style="font-weight:400">${hs.reduce((a, h) => a + h.n, 0)}개</span></h3>
+      ${hs.length ? `<div class="muted">문제가 생긴 장비를 체크한 뒤 아래 <b>문제 신고하기</b>를 누르세요. 여러 개를 한 번에 신고할 수 있습니다.</div>
+        ${Object.entries(byCat).map(([cid, arr]) => `<div class="cathd">${cat(cid)?.icon || ''} ${esc(cat(cid)?.name || '')}</div>
+          ${arr.map(h => { const k = h.is.id + '|' + h.l.lid, o = openReq(h.l); return `<label class="hold"><input type="checkbox" ${sel.has(k) ? 'checked' : ''} onchange="this.checked?sel.add('${k}'):sel.delete('${k}');updBar()">
+            <div><div class="nm">${lineName(h.l)}</div><div class="muted">${h.is.no} · ${day(h.is.date)} 지급 ${o ? '· ' + tag(o.type + ' 신고 접수중', 't-wait') : ''}</div></div><div class="q">${h.n}개</div></label>`; }).join('')}`).join('')}`
+      : '<div class="empty">보유 중인 장비가 없습니다</div>'}</div>
+    <div class="card"><h3>📨 신고 내역</h3>${my.length ? `<div class="tw"><table>${my.map(r => `<tr><td class="muted">${day(r.date)}</td><td>${lineName(r, 1)}<div class="muted">${esc(r.by || '')}</div></td><td>${typeTag(r.type)} ×${r.qty}</td>
+      <td class="r">${reqTag(r.status)}${r.adminNote ? `<div class="muted">${esc(r.adminNote)}</div>` : ''}${r.deduct ? `<div class="muted">공제 ${won(r.amount)}</div>` : ''}</td></tr>`).join('')}</table></div>` : '<div class="empty">신고 내역이 없습니다</div>'}</div>
+    <div class="card"><h3>🧾 지급·반납 이력</h3>${[...S.iss].sort(byDate).map(is => { const [s, cl] = isState(is);
+      return `<div class="hold" onclick="issDetail('${is.id}')"><div><div class="nm">${is.no} ${tag(s, cl)}</div><div class="muted">${day(is.date)} · ${summary(is.lines)}${is.returns?.length ? ` · 반납 ${is.returns.length}회` : ''}</div></div><div class="q muted">›</div></div>`; }).join('') || '<div class="empty">이력이 없습니다</div>'}</div>
+  </main><div class="bar hidden" id="bar"><span id="barN"></span><button class="pri" onclick="reportModal()">문제 신고하기</button><button class="sm" style="background:transparent;color:#fff;border-color:#fff5" onclick="sel=new Set();render()">선택 해제</button></div>`;
+}
+function updBar() { const b = $('#bar'); if (!b) return; b.classList.toggle('hidden', !sel.size); $('#barN').textContent = `${sel.size}개 장비 선택됨`; }
+function reportModal() {
+  const items = [...sel].map(k => { const [iid, lid] = k.split('|'), is = S.iss.find(x => x.id === iid), l = is?.lines.find(x => x.lid === lid); return l && out(l) > 0 ? { is, l } : null; }).filter(Boolean);
+  if (!items.length) return;
+  const allT = [...new Set(items.flatMap(x => cat(x.l.catId)?.issueTypes || []))];
+  openModal(`<h2>문제 신고</h2><div class="muted">유형을 고르고 상황을 적어 주세요. 관리자에게 바로 전달됩니다.</div>
+    <label class="f">한 번에 지정</label><div class="chips">${allT.map(t => `<button class="sm" onclick="$$('.rt input[value=&quot;${esc(t)}&quot;]').forEach(i=>i.checked=true)">모두 ${esc(t)}</button>`).join('')}</div>
+    ${items.map((x, i) => { const c = cat(x.l.catId) || { icon: '', issueTypes: ['고장', '분실', '기타'] }; return `<div class="rt" style="border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px">
+      <div class="row"><b>${c.icon} ${lineName(x.l)}</b><span class="sp"></span>${out(x.l) === 1 ? '<span class="muted">1개</span>' : `<span class="muted">수량</span><input class="num" type="number" min="1" max="${out(x.l)}" value="${out(x.l)}" data-rq>`}</div>
+      <div class="chips" style="margin-top:8px">${c.issueTypes.map(t => `<label class="chip"><input type="radio" name="rt${i}" value="${esc(t)}">${esc(t)}</label>`).join('')}</div></div>`; }).join('')}
+    <label class="f">상황 설명</label><textarea id="rdesc" placeholder="예: 10/20 오후 3공구 작업 중 낙하로 렌즈 파손"></textarea>
+    <div class="foot"><button onclick="closeModal()">취소</button><button class="pri" onclick='submitReport(this,${JSON.stringify(items.map(x => [x.is.id, x.l.lid]))})'>신고 접수</button></div>`);
+}
+async function submitReport(btn, keys) {
+  const blocks = $$('.rt'), desc = $('#rdesc').value.trim();
+  if (blocks.some(b => !b.querySelector('input[type=radio]:checked'))) return toast('모든 장비의 신고 유형을 선택하세요');
+  const entries = blocks.map((b, i) => {
+    const [issId, lid] = keys[i], l = S.iss.find(x => x.id === issId).lines.find(x => x.lid === lid), q = b.querySelector('[data-rq]');
+    return { companyId: ME.companyId, issId, lid, catId: l.catId, itemId: l.itemId, itemName: l.itemName || item(l.itemId)?.name || '', unitId: l.unitId, serial: l.serial || null,
+      type: b.querySelector('input[type=radio]:checked').value, qty: q ? Math.max(1, Math.min(out(l), Math.floor(+q.value || 1))) : 1, desc, status: '접수', by: ME.name, byUid: AUTH.uid };
+  });
+  btn.disabled = true;
+  try {
+    await DB.tx(async t => {
+      const cnt = await t.get('meta', 'counters') || {}, { nos, patch } = numbering(cnt, '신고', entries.length);
+      t.set('meta', 'counters', { ...cnt, ...patch });
+      entries.forEach((e, i) => t.set('reqs', DB.newId(), { ...e, no: nos[i], date: now() }));
+    });
+    sel = new Set(); closeModal(); render(); toast(`${entries.length}건 신고가 접수되었습니다`);
+  } catch (e) { onErr(e); btn.disabled = false; }
+}
+function signModal(id) {
+  const is = S.iss.find(x => x.id === id);
+  openModal(`<h2>지급 확인 및 서명</h2><div class="muted">${is.no} · ${day(is.date)} · ${esc(comp(is.companyId)?.name)}</div>
+    <label class="f">① 지급 장비</label><div class="tw"><table><tr><th>장비</th><th class="r">수량</th></tr>${is.lines.map(l => `<tr><td>${lineName(l, 1)}</td><td class="r">${l.qty}</td></tr>`).join('')}</table></div>
+    <label class="f">② 안내사항</label>${guides(is) || '<div class="muted">없음</div>'}
+    <label class="f" style="color:var(--ink)"><input type="checkbox" id="sg_ok" onchange="chkSign()"> 위 장비를 정상 수령했으며, 안내사항(분실 시 공제 포함)을 확인했습니다.</label>
+    <label class="f">③ 수령자 성명</label><input id="sg_name" value="${esc(ME.name)}" oninput="chkSign()">
+    <label class="f">④ 서명 <button class="sm ghost" onclick="clearSig()">지우기</button></label><canvas class="sig" id="sg"></canvas>
+    <div class="foot"><button onclick="closeModal()">나중에</button><button class="pri" id="sg_btn" disabled onclick="doSign('${id}')">서명 완료</button></div>`);
+  setupSig($('#sg'));
+}
+function setupSig(cv) {
+  const dpr = window.devicePixelRatio || 1, r = cv.getBoundingClientRect();
+  cv.width = r.width * dpr; cv.height = r.height * dpr;
+  const x = cv.getContext('2d'); x.scale(dpr, dpr); x.lineWidth = 2.6; x.lineCap = x.lineJoin = 'round'; x.strokeStyle = '#111';
+  let on = false; cv.dataset.drawn = '';
+  cv.onpointerdown = e => { on = true; cv.setPointerCapture(e.pointerId); x.beginPath(); x.moveTo(e.offsetX, e.offsetY); };
+  cv.onpointermove = e => { if (!on) return; x.lineTo(e.offsetX, e.offsetY); x.stroke(); if (!cv.dataset.drawn) { cv.dataset.drawn = '1'; chkSign(); } };
+  cv.onpointerup = cv.onpointercancel = () => on = false;
+}
+function clearSig() { const cv = $('#sg'); cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); cv.dataset.drawn = ''; chkSign(); }
+function chkSign() { $('#sg_btn').disabled = !($('#sg_ok').checked && $('#sg_name').value.trim() && $('#sg').dataset.drawn); }
+async function doSign(id) {
+  const cv = $('#sg'), t = document.createElement('canvas');
+  t.width = 400; t.height = Math.round(400 * cv.height / cv.width); t.getContext('2d').drawImage(cv, 0, 0, t.width, t.height);
+  $('#sg_btn').disabled = true;
+  try {
+    await DB.write([['update', 'iss', id, { status: 'signed', signer: $('#sg_name').value.trim(), signedAt: now(), sig: t.toDataURL('image/png'), signedBy: AUTH.uid }]]);
+    closeModal(); toast('서명 완료 — 보유 장비에 등록되었습니다');
+  } catch (e) { onErr(e); chkSign(); }
+}
+
+/* ========================================================= */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
+boot();
+</script>
+</body>
+</html>

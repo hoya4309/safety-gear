@@ -1,0 +1,76 @@
+rules_version = '2';
+// 안전장구 관리 — Firestore 보안 규칙
+// ⚠️ 최종 관리자: hoya4309@gmail.com (config.js 와 동일)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function SUPER_EMAIL() { return 'hoya4309@gmail.com'; }
+
+    function signedIn()  { return request.auth != null; }
+    function superEmail() {
+      return signedIn() && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() == SUPER_EMAIL().lower();
+    }
+    function myDoc()     { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function me()        { return get(myDoc()).data; }
+    function approved()  { return signedIn() && exists(myDoc()) && me().status == 'approved'; }
+    function isSuper()   { return superEmail() || (approved() && me().role == 'super'); }
+    function isAdmin()   { return isSuper() || (approved() && me().role == 'admin'); }
+    function isPartner() { return approved() && me().role == 'partner'; }
+    function changed()   { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // ── 사용자 / 가입 승인 ───────────────────────────────
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+
+      // 본인 가입 신청(승인 대기) 또는 최종 관리자 최초 등록
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && ((request.resource.data.role == 'none' && request.resource.data.status == 'pending')
+            || (superEmail() && request.resource.data.role == 'super' && request.resource.data.status == 'approved'));
+
+      allow update: if
+        // 최종 관리자: 모든 사용자 승인·권한 변경
+        isSuper()
+        // 관리자: 협력사 사용자만 승인·소속 변경·사용 중지 (관리자 권한 부여 불가)
+        || (isAdmin() && request.auth.uid != uid
+            && resource.data.role in ['none', 'partner']
+            && request.resource.data.role in ['none', 'partner']
+            && (resource.data.role == 'partner' || resource.data.requestedRole == 'partner')
+            && request.resource.data.requestedRole == resource.data.requestedRole)
+        // 본인: 승인 대기/반려 상태에서 신청 내용 수정·재신청만
+        || (request.auth.uid == uid
+            && resource.data.status in ['pending', 'rejected']
+            && resource.data.role == 'none' && request.resource.data.role == 'none'
+            && request.resource.data.status == 'pending'
+            && changed().hasOnly(['status', 'name', 'phone', 'requestedRole', 'companyId', 'requestedCompany', 'updatedAt']));
+
+      allow delete: if isSuper();
+    }
+
+    // ── 기준 정보 ────────────────────────────────────────
+    match /comps/{id} { allow read: if signedIn();  allow write: if isAdmin(); }
+    match /cats/{id}  { allow read: if approved();  allow write: if isAdmin(); }
+    match /items/{id} { allow read: if approved();  allow write: if isAdmin(); }
+    match /units/{id} { allow read, write: if isAdmin(); }
+    match /meta/{id}  { allow read, write: if approved(); }   // 문서번호 카운터
+
+    // ── 지급 (협력사는 자기 회사 것만 보고, 서명만 가능) ──
+    match /iss/{id} {
+      allow read: if isAdmin() || (isPartner() && resource.data.companyId == me().companyId);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (isPartner() && resource.data.companyId == me().companyId
+            && resource.data.status == 'pending' && request.resource.data.status == 'signed'
+            && changed().hasOnly(['status', 'signer', 'signedAt', 'sig', 'signedBy']));
+    }
+
+    // ── 특이사항 신고 (협력사는 자기 회사 것만 접수·조회) ──
+    match /reqs/{id} {
+      allow read: if isAdmin() || (isPartner() && resource.data.companyId == me().companyId);
+      allow create: if isAdmin()
+        || (isPartner() && request.resource.data.companyId == me().companyId && request.resource.data.status == '접수');
+      allow update, delete: if isAdmin();
+    }
+  }
+}
